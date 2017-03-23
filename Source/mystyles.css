@@ -1,0 +1,21 @@
+.topbookmarktoolbar {
+    text-align: left;
+    position: fixed;
+    z-index: 2147483647;
+    left: 0px;
+    top: 0px;
+    width:100%;
+    background-color: #F2F2F2;
+    border-bottom: 1px solid #B6B4B6;
+    display: none;
+}
+
+.topbookmarkmenu {
+    text-align: left;
+    position: fixed;
+    z-index: 2147483647;
+    background-color: #F2F2F2;
+    border: 1px solid #B6B4B6;
+    display: block;
+    box-shadow: 1px 1px 1px grey;
+}
