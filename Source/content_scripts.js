@@ -1,7 +1,8 @@
 "use strict";
 
 const toolbarHeight = 20;
-let toolbar;
+const pauseMS = 10000;
+let toolbar, rootMenu;
 
 function createToolbar() {
     toolbar = document.createElement("div");
@@ -10,18 +11,15 @@ function createToolbar() {
     toolbar.style.height = toolbarHeight + "px";
     toolbar.dataset.hasRoot = "false";
     toolbar.dataset.hasMenu = "false";
-    toolbar.addEventListener("mouseenter", function () {
-        createRootBookmarks(this);
-    });
-    toolbar.addEventListener("mouseleave", function () {
-        clearRootBookmarks(this);
-    });
+    toolbar.dataset.isPausing = "false";
+    toolbar.addEventListener("mouseenter", function () { createRootBookmarks(toolbar); });
+    toolbar.addEventListener("mouseleave", function () { removeRootBookmarks(toolbar); });
 
     document.body.appendChild(toolbar);
 }
 
 function showToolbarWhenOnTop() {
-    if (event.clientY < toolbarHeight) {
+    if (event.clientY < toolbarHeight && toolbar.dataset.isPausing === "false") {
         toolbar.style.display = "block";
     }
 }
@@ -44,7 +42,7 @@ function createRootBookmarks(toolbar) {
                 placeHolder.style.cursor = "pointer";
 
                 let favIcon = getFavIcon();
-                let bookmarkTitle, bookmarkText;
+                let bookmarkTitle;
 
                 if (typeof bookmark.url !== "undefined") {
                     //url
@@ -64,13 +62,60 @@ function createRootBookmarks(toolbar) {
                 bookmarks.appendChild(placeHolder);
             }
 
+            //add collapse menu button
+            let collapsePlaceHolder = document.createElement("span");
+            collapsePlaceHolder.style.width = "16px";
+            collapsePlaceHolder.style.display = "none";
+            let collapseButton = document.createElement("img");
+            collapseButton.src = chrome.extension.getURL("collapse.png");
+            collapseButton.style.cursor = "pointer";
+
+            collapseButton.title = chrome.i18n.getMessage("appCollapse");
+            collapsePlaceHolder.appendChild(collapseButton);
+            collapsePlaceHolder.addEventListener("click", function () {
+                event.stopPropagation();
+                toolbar.dataset.hasShowMenu = "true";
+                showRootMenu();
+            });
+
+            toolbar.appendChild(collapsePlaceHolder);
             toolbar.appendChild(bookmarks);
             toolbar.dataset.hasRoot = "true";
+
+            //recalculate root bookmarks total width
+            let windowWidth = window.innerWidth;
+            let bookmarksWidth = 0;
+            let bookmarkOverWideIndex;
+            for (let currentChildNodeIndex = 0; currentChildNodeIndex < toolbar.childNodes.length; currentChildNodeIndex++) {
+                let childNode = toolbar.childNodes[currentChildNodeIndex];
+                bookmarksWidth += childNode.offsetWidth;
+                if (bookmarksWidth >= windowWidth) {
+                    bookmarkOverWideIndex = currentChildNodeIndex;
+                    collapsePlaceHolder.style.display = "inline";
+                    break;
+                };
+            }
+
+            //add root menu to contain root bookmarks
+            rootMenu = document.createElement("div");
+            rootMenu.id = "topbookmarkmenu.0";
+            rootMenu.className = "topbookmarkmenu";
+            rootMenu.style.left = "0px";
+            rootMenu.style.top = "21px";
+            rootMenu.style.display = "none";
+
+            for (let currentChildNodeIndex = toolbar.childNodes.length - 1; currentChildNodeIndex >= bookmarkOverWideIndex; currentChildNodeIndex--) {
+                let childNode = toolbar.childNodes[currentChildNodeIndex];
+                childNode.style.display = "block";
+                rootMenu.insertBefore(childNode, rootMenu.childNodes[0]);
+            }
+
+            document.body.appendChild(rootMenu);
         });
     }
 }
 
-function clearRootBookmarks(toolbar) {
+function removeRootBookmarks(toolbar) {
     if (toolbar.dataset.hasMenu === "false") {
         toolbar.style.display = "none";
 
@@ -87,6 +132,7 @@ function createMenu(level, bookmarkId) {
     let cursorY = event.clientY;
 
     removeMenuTree(level);
+    rootMenu.style.display = event.currentTarget.offsetParent === rootMenu ? "block" : "none";
 
     chrome.runtime.sendMessage({ id: bookmarkId }, function (response) {
         let bookmarkContent = JSON.parse(response.content);
@@ -97,7 +143,7 @@ function createMenu(level, bookmarkId) {
             placeHolder.style.cursor = "pointer";
 
             let favIcon = getFavIcon();
-            let bookmarkTitle, bookmarkText;
+            let bookmarkTitle;
 
             if (typeof bookmark.url !== "undefined") {
                 //url
@@ -108,7 +154,7 @@ function createMenu(level, bookmarkId) {
                 bookmarkTitle = getFolder(bookmark);
                 bookmarkTitle.addEventListener("click", function () {
                     event.stopPropagation();
-                    createMenu(level + 1, bookmark.id);
+                    createMenu(level + 1, bookmark.id, false);
                 });
             }
 
@@ -172,10 +218,26 @@ function getFolder(bookmark) {
     return bookmarkTitle
 }
 
-createToolbar();
-document.addEventListener("mousemove", showToolbarWhenOnTop);
-document.addEventListener("click", function () {
+function pauseShowToolbar() {
+    hideToolbar();
+    toolbar.dataset.isPausing = "true";
+    setTimeout(function () { toolbar.dataset.isPausing = "false"; }, pauseMS);
+}
+
+function hideToolbar() {
+    rootMenu.style.display = "none";
     removeMenuTree(1);
-    toolbar.dataset.hasShowMenu = false;
-    clearRootBookmarks(toolbar);
-});
+    toolbar.dataset.hasShowMenu = "false";
+    removeRootBookmarks(toolbar);
+}
+
+function showRootMenu() {
+    removeMenuTree(1);
+    rootMenu.style.display = "block";
+    toolbar.dataset.hasMenu = "true";
+}
+
+//=====start running=====
+createToolbar();
+document.addEventListener("mousemove", function () { showToolbarWhenOnTop(); });
+document.addEventListener("click", function () { hideToolbar(); });

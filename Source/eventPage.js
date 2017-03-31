@@ -6,3 +6,10 @@ chrome.runtime.onMessage.addListener(
 
         return true;
     });
+
+chrome.contextMenus.create({ id: "TopBookmarkToolbar", title: chrome.i18n.getMessage("appPause"), contexts: ["all"] });
+chrome.contextMenus.onClicked.addListener(function (info, tab) {
+    chrome.tabs.executeScript({
+        code: "pauseShowToolbar();"
+    });
+});

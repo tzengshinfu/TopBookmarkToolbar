@@ -1,1 +1,5 @@
 A convenient bookmarks toolbar on the top of web pages.
+
+v1.1.0 Release Notes:
+[1]Add collapse menu function. -> when root bookmarks overflowed toolbar
+[2]Add pause showing toolbar in 10sec function. -> on right click menu

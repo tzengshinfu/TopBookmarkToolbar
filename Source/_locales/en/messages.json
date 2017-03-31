@@ -4,5 +4,11 @@
   },
   "appDesc": {
     "message": "A convenient bookmarks toolbar on the top of web pages."
+  },
+  "appCollapse": {
+    "message": "show more bookmarks..."
+  },
+  "appPause": {
+    "message": "hide toolbar in 10sec."
   }
 }
