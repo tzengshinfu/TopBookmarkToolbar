@@ -104,12 +104,15 @@ function createRootBookmarks(toolbar) {
             rootMenu.style.top = "21px";
             rootMenu.style.display = "none";
 
+            let overWideBookmarks = document.createDocumentFragment();
+
             for (let currentChildNodeIndex = toolbar.childNodes.length - 1; currentChildNodeIndex >= bookmarkOverWideIndex; currentChildNodeIndex--) {
                 let childNode = toolbar.childNodes[currentChildNodeIndex];
                 childNode.style.display = "block";
-                rootMenu.insertBefore(childNode, rootMenu.childNodes[0]);
+                overWideBookmarks.insertBefore(childNode, overWideBookmarks.childNodes[0]);
             }
 
+            rootMenu.appendChild(overWideBookmarks);
             document.body.appendChild(rootMenu);
         });
     }
