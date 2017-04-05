@@ -86,7 +86,7 @@ function createRootBookmarks(toolbar) {
             let windowWidth = window.innerWidth;
             let bookmarksWidth = 0;
             let bookmarkOverWideIndex;
-            for (let currentChildNodeIndex = 0; currentChildNodeIndex < toolbar.childNodes.length; currentChildNodeIndex++) {
+            for (let currentChildNodeIndex = 0, toolbarChildNodeCount = toolbar.childNodes.length; currentChildNodeIndex < toolbarChildNodeCount; currentChildNodeIndex++) {
                 let childNode = toolbar.childNodes[currentChildNodeIndex];
                 bookmarksWidth += childNode.offsetWidth;
                 if (bookmarksWidth >= windowWidth) {
@@ -174,6 +174,11 @@ function createMenu(level, bookmarkId) {
         menu.appendChild(bookmarks);
         document.body.appendChild(menu);
         toolbar.dataset.hasMenu = "true";
+        let windowHeight = window.innerHeight;
+        let menuHeight = menu.offsetHeight;
+        if (menuHeight > windowHeight) {
+            menu.style.height = windowHeight * 0.85 + "px";
+        }
     });
 }
 
@@ -238,6 +243,11 @@ function showRootMenu() {
     removeMenuTree(1);
     rootMenu.style.display = "block";
     toolbar.dataset.hasMenu = "true";
+    let windowHeight = window.innerHeight;
+    let rootMenuHeight = rootMenu.offsetHeight;
+    if (rootMenuHeight > windowHeight) {
+        rootMenu.style.height = windowHeight * 0.85 + "px";
+    }
 }
 
 //=====start running=====
